@@ -1,0 +1,4 @@
+__pycache__
+config/adapter.json
+jars/*
+!jars/.gitkeep

@@ -1,0 +1,4 @@
+# Maintain Linux fromat for all files in the repository.
+* text eol=lf
+*.jar -text
+
