@@ -16,19 +16,37 @@
 
 import subprocess
 from os import path
+import platform
+from adapterconfig import AdapterConfig
 
 
 class Metrics:
     def __init__(self):
         pythonDir = path.dirname(path.realpath(__file__))
         baseDir = path.dirname(pythonDir)
+        config = AdapterConfig()
+        self.hostname = platform.uname().node
+        self.brokerName = config.instance.brokerName
+        self.status = 'Online'
+        self.activeServers = 0
+        self.busyServers = 0
+        self.lockedServers = 0
+        self.availableServers = 0
+        self.currentActiveClients = 0
+        self.maximumActiveClients = 0
+        self.currentClientQueueDepth = 0
+        self.maximumClientQueueDepth = 0
+        self.totalRequests  = 0
+        self.maximumRequestWait = 0
+        self.averageRequestWait = 0
+
         status = subprocess.run([f"{baseDir}/adaptman", "s"], capture_output=True, text=True, check=True)
         lines = status.stdout.splitlines()
         for line in lines:
             parts = line.split(':')
             match parts[0].strip():
-                case 'Broker Name':
-                    self.brokerName = parts[1].strip()
+                case 'The adapter is not running.':
+                    self.status = 'Offline'
                 case 'Active Servers':
                     self.activeServers = int(parts[1])
                 case 'Busy Servers':
@@ -51,17 +69,16 @@ class Metrics:
                     mx, av = self._valueSplitter(parts[1])
                     self.maximumRequestWait = mx
                     self.averageRequestWait = av
-                case 'Rq Duration (max, avg)':
-                    mx, av = self._valueSplitter(parts[1])
-                    self.maximumRequestDuration = mx
-                    self.averageRequestDuration = av
+
 
     def _valueSplitter(self, value: str):
         items = value.strip(' ()').split(',')
         return int(items[0].strip(' ms')), int(items[1].strip(' ms'))
 
+
     def __str__(self):
-        return f"""Metrics for broker {self.brokerName}
+        if self.status == 'Online':
+            result = f"""Metrics for broker {self.brokerName} on {self.hostname}
 Active Servers             : {self.activeServers}
 Busy Servers               : {self.busyServers}
 Locked Servers             : {self.lockedServers}
@@ -73,9 +90,11 @@ Maximum Client Queue Depth : {self.maximumClientQueueDepth}
 Total Requests             : {self.totalRequests}
 Average Request Wait       : {self.averageRequestWait} ms
 Maximum Request Wait       : {self.maximumRequestWait} ms
-Average Request Duration   : {self.averageRequestDuration} ms
-Maximum Request Duration   : {self.maximumRequestDuration} ms
 """
+        else:
+            result = f"Broker {self.brokerName} on {self.hostname} is Offline"
+        
+        return result
 
 
 def main() -> None:
