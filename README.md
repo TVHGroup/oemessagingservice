@@ -187,17 +187,19 @@ servers, use:
 ## Metrics
 The file `python/metrics.py` defines a Python class called `Metrics`. When this
 class is instantiated, it uses the CLI to get the summary page of the Adapter
-and extract the statistics on it into individual fields of the class. This can
-be used by a custom Python based monitoring script to feed data about the 
-Adapter to monitoring databases. The `__str__` method of the class is overridden
-to output a formatted report of the data collected by the class.
+and extract the statistics on it into individual fields of the class. It also
+adds selected values from the ubroker.properties file. These statistics and 
+values can be used by a custom Python based monitoring and alerting systems.
+
+The `__str__` method of the class is overridden to output a formatted report of
+the data collected by the class.
 
 If the file is invoked as if it is a program (i.e. it is invoked from the
-command line) then it will create an instance of the class and print its 
-string representation.
+command line) then it will simply create an instance of the class and print
+its string representation.
 
-The class is immutable and there is no way to refresh the fields of the class. 
-To get the latest data, simply create a new instance of the class.
+The class is immutable, there is no way to refresh the fields of the class. To
+get the latest data, simply create a new instance of the class.
 
 ## Checking if the Adapter is running
 The script `probe` can be used to check if the adapter is running or not and

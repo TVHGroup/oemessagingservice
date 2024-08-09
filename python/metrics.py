@@ -18,6 +18,7 @@ import subprocess
 from os import path
 import platform
 from adapterconfig import AdapterConfig
+from configparser import ConfigParser
 
 
 class Metrics:
@@ -39,6 +40,8 @@ class Metrics:
         self.totalRequests  = 0
         self.maximumRequestWait = 0
         self.averageRequestWait = 0
+        self.maxAdptrThreads = 0
+        self.maxClientInstance = 0
 
         status = subprocess.run([f"{baseDir}/adaptman", "s"], capture_output=True, text=True, check=True)
         lines = status.stdout.splitlines()
@@ -70,6 +73,12 @@ class Metrics:
                     self.maximumRequestWait = mx
                     self.averageRequestWait = av
 
+        props = ConfigParser(comment_prefixes=('#', '%'))
+        props.read(f"{config.environment['DLC']}/properties/ubroker.properties")
+        if props.has_section(f"Adapter.{self.brokerName}"):
+            self.maxAdptrThreads = props.getint(f"Adapter.{self.brokerName}", "maxAdptrThreads", fallback=0)
+            self.maxClientInstance = props.getint(f"Adapter.{self.brokerName}", "maxClientInstance", fallback=0)
+
 
     def _valueSplitter(self, value: str):
         items = value.strip(' ()').split(',')
@@ -90,6 +99,10 @@ Maximum Client Queue Depth : {self.maximumClientQueueDepth}
 Total Requests             : {self.totalRequests}
 Average Request Wait       : {self.averageRequestWait} ms
 Maximum Request Wait       : {self.maximumRequestWait} ms
+
+Configuration for broker {self.brokerName} on {self.hostname}:
+Maximum Adapter Threads    : {self.maxAdptrThreads}
+Maximum Clients Instances  : {self.maxClientInstance}
 """
         else:
             result = f"Broker {self.brokerName} on {self.hostname} is Offline"
