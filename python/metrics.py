@@ -46,32 +46,35 @@ class Metrics:
         status = subprocess.run([f"{baseDir}/adaptman", "s"], capture_output=True, text=True, check=True)
         lines = status.stdout.splitlines()
         for line in lines:
-            parts = line.split(':')
-            match parts[0].strip():
-                case 'The adapter is not running.':
-                    self.status = 'Offline'
-                case 'Active Servers':
-                    self.activeServers = int(parts[1])
-                case 'Busy Servers':
-                    self.busyServers = int(parts[1])
-                case 'Locked Servers':
-                    self.lockedServers = int(parts[1])
-                case 'Available Servers':
-                    self.availableServers = int(parts[1])
-                case 'Active Clients (now, peak)':
-                    current, peak = self._valueSplitter(parts[1])
-                    self.currentActiveClients = current
-                    self.maximumActiveClients = peak
-                case 'Client Queue Depth (cur, max)':
-                    current, peak = self._valueSplitter(parts[1])
-                    self.currentClientQueueDepth = current
-                    self.maximumClientQueueDepth = peak
-                case 'Total Requests':
-                    self.totalRequests = int(parts[1])
-                case 'Rq Wait (max, avg)':
-                    mx, av = self._valueSplitter(parts[1])
-                    self.maximumRequestWait = mx
-                    self.averageRequestWait = av
+            try:
+                parts = line.split(':')
+                match parts[0].strip():
+                    case 'The adapter is not running.':
+                        self.status = 'Offline'
+                    case 'Active Servers':
+                        self.activeServers = int(parts[1])
+                    case 'Busy Servers':
+                        self.busyServers = int(parts[1])
+                    case 'Locked Servers':
+                        self.lockedServers = int(parts[1])
+                    case 'Available Servers':
+                        self.availableServers = int(parts[1])
+                    case 'Active Clients (now, peak)':
+                        current, peak = self._valueSplitter(parts[1])
+                        self.currentActiveClients = current
+                        self.maximumActiveClients = peak
+                    case 'Client Queue Depth (cur, max)':
+                        current, peak = self._valueSplitter(parts[1])
+                        self.currentClientQueueDepth = current
+                        self.maximumClientQueueDepth = peak
+                    case 'Total Requests':
+                        self.totalRequests = int(parts[1])
+                    case 'Rq Wait (max, avg)':
+                        mx, av = self._valueSplitter(parts[1])
+                        self.maximumRequestWait = mx
+                        self.averageRequestWait = av
+            except ValueError:
+                pass
 
         props = ConfigParser(comment_prefixes=('#', '%'))
         props.read(f"{config.environment['DLC']}/properties/ubroker.properties")
@@ -82,7 +85,18 @@ class Metrics:
 
     def _valueSplitter(self, value: str):
         items = value.strip(' ()').split(',')
-        return int(items[0].strip(' ms')), int(items[1].strip(' ms'))
+        value1 = 0
+        value2 = 0
+        try:
+            value1 = int(items[0].strip(' ms'))
+        except ValueError:
+            pass
+        try:
+            value2 = int(items[1].strip(' ms'))
+        except ValueError:
+            pass
+
+        return value1, value2
 
 
     def __str__(self):
