@@ -92,7 +92,8 @@ class Metrics:
         except ValueError:
             pass
         try:
-            value2 = int(items[1].strip(' ms'))
+            if len(items) >= 2:
+                value2 = int(items[1].strip(' ms'))
         except ValueError:
             pass
 
