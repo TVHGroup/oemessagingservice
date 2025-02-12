@@ -78,8 +78,8 @@ class Input:
 class JmsAdapterUI:
     def __init__(self, serverPort: int):
         self.serverPort = serverPort
-        self.connection: Connection = None
-        self.input: Input = None
+        self.connection: Connection | None = None
+        self.input: Input | None = None
 
     def runUI(self) -> None:
         self.connection = Connection(self.serverPort)

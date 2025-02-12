@@ -38,7 +38,7 @@ class AdapterProcess:
     def __init__(self, config: adapterconfig.AdapterConfig, logger: logging.Logger):
         self.config = config
         self.logger = logger
-        self.process: subprocess.Popen = None
+        self.process: subprocess.Popen | None = None
         self.output = b''
 
     @property
@@ -117,9 +117,9 @@ class JmsAdapterManager:
         self.controlPort = config.instance.controlPort
         self.logger = logger
         self.selector = selectors.DefaultSelector()
-        self.adapterProcess: AdapterProcess = None
-        self.serverSocket: socket.socket = None
-        self.clientSocket: socket.socket = None
+        self.adapterProcess: AdapterProcess | None = None
+        self.serverSocket: socket.socket | None = None
+        self.clientSocket: socket.socket | None = None
 
     def _setupServerSocket(self) -> None:
         self.logger.info(f"Setting up controller on localhost:{self.controlPort}")
@@ -187,8 +187,8 @@ class JmsAdapterManager:
 
     def runAdapter(self) -> None:
         try:
-            self._setupServerSocket()
             self._startAdapter()
+            self._setupServerSocket()
             while self.adapterProcess.isRunning:
                 events = self.selector.select(timeout=None)
                 for key, mask in events:
